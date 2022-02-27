@@ -2,10 +2,10 @@ field,identifier
 market_cap,.bsemktcap
 ratios_url,#consolidated li:nth-child(8) a
 consolidated_rnw,"tr:nth-child(20) td:nth-child(6) , tr:nth-child(20) td:nth-child(5) , tr:nth-child(20) td:nth-child(4) , tr:nth-child(20) td:nth-child(3) , tr:nth-child(20) td:nth-child(2)"
-standalone_rnw,"tr:nth-child(20) td:nth-child(6) , tr:nth-child(20) td:nth-child(5) , tr:nth-child(20) td:nth-child(4) , tr:nth-child(20) td:nth-child(3) , tr:nth-child(20) td:nth-child(2)"
+standalone_rnw,"tr:nth-child(19) td:nth-child(3) , tr:nth-child(19) td:nth-child(6) , tr:nth-child(19) td:nth-child(5) , tr:nth-child(19) td:nth-child(4) , tr:nth-child(19) td:nth-child(2)"
+consolidated_de,"tr:nth-child(23) td:nth-child(6) , tr:nth-child(23) td:nth-child(5) , tr:nth-child(23) td:nth-child(4) , tr:nth-child(23) td:nth-child(3) , tr:nth-child(23) td:nth-child(2)"
+standalone_de,"tr:nth-child(22) td:nth-child(6) , tr:nth-child(22) td:nth-child(5) , tr:nth-child(22) td:nth-child(4) , tr:nth-child(22) td:nth-child(3) , tr:nth-child(22) td:nth-child(2)"
+consolidated_np,"tr:nth-child(29) td:nth-child(6) , tr:nth-child(29) td:nth-child(5) , tr:nth-child(29) td:nth-child(4) , tr:nth-child(29) td:nth-child(3) , tr:nth-child(29) td:nth-child(2)"
+standalone_np,"tr:nth-child(29) td:nth-child(6) , tr:nth-child(29) td:nth-child(5) , tr:nth-child(29) td:nth-child(4) , tr:nth-child(29) td:nth-child(3) , tr:nth-child(29) td:nth-child(2)"
 consolidated_sr,".lightbg+ tr td:nth-child(6) , .lightbg+ tr td:nth-child(5) , .lightbg+ tr td:nth-child(4) , .lightbg+ tr td:nth-child(3) , .lightbg+ tr td:nth-child(2)"
 standalone_sr,".lightbg+ tr td:nth-child(6) , .lightbg+ tr td:nth-child(5) , .lightbg+ tr td:nth-child(4) , .lightbg+ tr td:nth-child(3) , .lightbg+ tr td:nth-child(2)"
-standalone_np,"tr:nth-child(29) td:nth-child(6) , tr:nth-child(29) td:nth-child(5) , tr:nth-child(29) td:nth-child(4) , tr:nth-child(29) td:nth-child(3) , tr:nth-child(29) td:nth-child(2)"
-consolidated_np,"tr:nth-child(29) td:nth-child(6) , tr:nth-child(29) td:nth-child(5) , tr:nth-child(29) td:nth-child(4) , tr:nth-child(29) td:nth-child(3) , tr:nth-child(29) td:nth-child(2)"
-standalone_de,"tr:nth-child(22) td:nth-child(6) , tr:nth-child(22) td:nth-child(5) , tr:nth-child(22) td:nth-child(4) , tr:nth-child(22) td:nth-child(3) , tr:nth-child(22) td:nth-child(2)"
-consolidated_de,"tr:nth-child(23) td:nth-child(6) , tr:nth-child(23) td:nth-child(5) , tr:nth-child(23) td:nth-child(4) , tr:nth-child(23) td:nth-child(3) , tr:nth-child(23) td:nth-child(2)"
