@@ -131,8 +131,13 @@ class StockDownloader(object):
             for d in dates
             if not d.strftime("%Y%m%d") in self.exclude_days
         ]
-        with ProcessPoolExecutor() as executor:
-            executor.map(self.download_data_for_date, dates)
+        for dt in dates:
+            self.download_data_for_date(dt)
+
+        # Multiprocessing seems to be causing issues and might be overkill anyway considering bot is going 
+        # to be running on a daily basis.
+        # with ProcessPoolExecutor() as executor:
+        #     executor.map(self.download_data_for_date, dates)
 
     def download_past_two_years(self):
         self.download_date_range(today().subtract(years=2), today())
