@@ -1,3 +1,4 @@
 data/bse/*.csv
 data/nse/*.csv
 *.ipynb_checkpoints
+*.pyc

@@ -1,0 +1,13 @@
+name: investment_buddy
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pandas
+  - pip:
+    - webdriver_manager==3.5.3
+    - tqdm==4.62.3
+    - openpyxl==3.0.9
+    - beautifulsoup4==4.10.0
+    - pendulum==2.1.2
+    - selenium==4.1.2
