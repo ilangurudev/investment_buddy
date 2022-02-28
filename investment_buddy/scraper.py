@@ -129,8 +129,7 @@ class PageFinder(object):
         return f"PageFinder({self.isin}, {self.symbol}, {self.url})"
 
 
-def scrape_metrics(data_filter):
-    df_filtered = data_filter.df_all_filtered
+def scrape_metrics(df_filtered, date_str):
     df_filtered = df_filtered.assign(
         pf=lambda df: df.progress_apply(
             lambda row: PageFinder(row["isin"], row["symbol"]), axis=1
@@ -194,5 +193,6 @@ def scrape_metrics(data_filter):
 
     # Save the worksheet as a (*.xlsx) file
     wb.template = False
-    wb.save(f"data/final/{data_filter.date_str}.xlsx")
-    logger.info(f"Saved data to data/final/{data_filter.date_str}")
+    save_path = f"data/{date_str}.xlsx" if date_str=="latest" else f"data/final/{date_str}.xlsx"
+    wb.save(save_path)
+    logger.info(f"Saved data to {save_path}")

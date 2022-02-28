@@ -16,4 +16,4 @@ as_of_date = pendulum.today()  # pendulum.from_format(f"202202{d:02}", "YYYYMMDD
 data_filter = DataFilters(as_of_date)
 data_filter.apply_all_filters()
 
-scrape_metrics(data_filter)
+scrape_metrics(data_filter.df_all_filtered, data_filter.date_str)
