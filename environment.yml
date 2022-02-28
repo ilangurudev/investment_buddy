@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.8
   - pandas
+  - pip
   - pip:
     - webdriver_manager==3.5.3
     - tqdm==4.62.3
@@ -11,3 +12,4 @@ dependencies:
     - beautifulsoup4==4.10.0
     - pendulum==2.1.2
     - selenium==4.1.2
+    - lxml
