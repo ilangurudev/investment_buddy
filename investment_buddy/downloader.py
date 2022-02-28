@@ -92,7 +92,7 @@ class StockDownloader(object):
                 logger.warning(
                     f"{self.exchange} data not available on {date.format('DD MMM, YYYY.')}"
                 )
-                logger.warning(err.message)
+                logger.warning(err)
             finally:
                 os.close(fd)
         else:
