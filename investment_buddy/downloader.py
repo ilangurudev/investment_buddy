@@ -11,6 +11,7 @@ from concurrent.futures import ProcessPoolExecutor
 import logging
 from requests.exceptions import HTTPError, ReadTimeout, Timeout
 import glob
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
