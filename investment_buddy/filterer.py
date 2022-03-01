@@ -41,7 +41,7 @@ class DataFilters(object):
         prev_days = [
             f"data/filtered/{d}.xlsx"
             for d in date_strs
-            if f"data/filtered/{d}.xlsx" in glob.glob("data/filtered/*.xlsx")
+            if len(glob.glob(f"data/filtered/{d}.xlsx"))
         ]
         self.df_prev = (
             pd.concat(map(pd.read_excel, prev_days)).assign(
