@@ -25,14 +25,14 @@ class PageFinder(object):
     keys_dict = {k: v["identifier"] for k, v in keys_dict.items()}
     check_element = keys_dict["market_cap"].replace(".", "")
 
-    options = webdriver.ChromeOptions()
-    options.add_argument("--ignore-certificate-errors")
-    options.add_argument("--incognito")
-    options.add_argument("--headless")
-    options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    browser = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()), options=options
-    )
+    # options = webdriver.ChromeOptions()
+    # options.add_argument("--ignore-certificate-errors")
+    # options.add_argument("--incognito")
+    # options.add_argument("--headless")
+    # options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    # browser = webdriver.Chrome(
+    #     service=Service(ChromeDriverManager().install()), options=options
+    # )
 
     def __init__(self, isin, symbol):
         self.isin, self.symbol = str(isin), str(symbol)
@@ -44,9 +44,9 @@ class PageFinder(object):
         return self.base_search_url + term
 
     def get_parsed_content(self, url, wait_time=0):
-        self.browser.implicitly_wait(wait_time)
-        self.browser.get(url)
-        return BeautifulSoup(self.browser.page_source, features="lxml")
+        # self.browser.implicitly_wait(wait_time)
+        # self.browser.get(url)
+        return BeautifulSoup(requests.get(url).content, features="lxml")
 
     def validate_and_gather_info(self, term):
         url = self.make_url(term)
@@ -54,7 +54,7 @@ class PageFinder(object):
         if self.check_element in str(content):
             logger.info(f"\nGathering Data for {self.symbol}")
             self.url = url
-            soup_home = self.get_parsed_content(url, 10)
+            soup_home = BeautifulSoup(content, features="lxml")
             market_cap = soup_home.select_one(
                 self.keys_dict["market_cap"].replace(" ", ".")
             ).text.replace(",", "")
