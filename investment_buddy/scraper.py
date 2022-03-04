@@ -43,10 +43,16 @@ class PageFinder(object):
     def make_url(self, term):
         return self.base_search_url + term
 
-    def get_parsed_content(self, url, wait_time=0):
+    def get_parsed_content(self, url):
         # self.browser.implicitly_wait(wait_time)
         # self.browser.get(url)
-        return BeautifulSoup(requests.get(url).content, features="lxml")
+        try:
+            parsed_content = BeautifulSoup(requests.get(url).content, features="lxml")
+            return parsed_content
+        except Exception as e:
+            logger.warning(f"Could not get content for {url}")
+            logger.warning(e)
+            return ""
 
     def validate_and_gather_info(self, term):
         url = self.make_url(term)
