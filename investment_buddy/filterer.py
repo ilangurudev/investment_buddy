@@ -56,7 +56,7 @@ class DataFilters(object):
         self.apply_300p_month_filter()
         self.apply_200p_quarter_filter()
         self.apply_200p_twice_6mos()
-        self.apply_52week_high_filter()
+        # self.apply_52week_high_filter()
         self.df_all_filtered = (
             pd.concat(
                 [
@@ -64,7 +64,7 @@ class DataFilters(object):
                     self.df_200p_val_quarter.assign(
                         filter="200% value over prior quarter"
                     ),
-                    self.df_52_week_highs.assign(filter="52 week high"),
+                    # self.df_52_week_highs.assign(filter="52 week high"),
                     self.df_200p_val_twice.assign(filter="200% twice in 6 months"),
                 ]
             )
