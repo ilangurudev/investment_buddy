@@ -3,3 +3,5 @@ data/nse/*.csv
 *.ipynb_checkpoints
 *.pyc
 .vscode/*
+data/filtered/*.xlsx
+data/final/*.xlsx
