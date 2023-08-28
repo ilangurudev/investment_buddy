@@ -217,7 +217,7 @@ class DataFilters(object):
                 close_ratio=lambda df: df.close / df.close_lag,
             )
             .query("value_lag.notna()", engine="python")
-            .query("value_ratio>2 & close_ratio>1 & value>2_000_000")
+            .query("value_ratio>2 & value>2_000_000")  # & close_ratio>1
             .groupby(["symbol", "isin", "exchange"])
             .agg({"close_ratio": "count"})
             .reset_index()
