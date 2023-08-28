@@ -53,19 +53,19 @@ class DataFilters(object):
 
     def apply_all_filters(self):
         self.get_prev_data()
-        self.apply_300p_month_filter()
+        # self.apply_300p_month_filter()
         self.apply_200p_quarter_filter()
-        self.apply_200p_twice_6mos()
+        self.apply_200p_thrice_12mos()
         # self.apply_52week_high_filter()
         self.df_all_filtered = (
             pd.concat(
                 [
-                    self.df_300p_val_month.assign(filter="300% value over prior month"),
+                    # self.df_300p_val_month.assign(filter="300% value over prior month"),
                     self.df_200p_val_quarter.assign(
                         filter="200% value over prior quarter"
                     ),
                     # self.df_52_week_highs.assign(filter="52 week high"),
-                    self.df_200p_val_twice.assign(filter="200% twice in 6 months"),
+                    self.df_200p_val_thrice.assign(filter="200% thrice in 12 months"),
                 ]
             )
             .groupby(["symbol", "isin", "exchange"])
@@ -197,11 +197,11 @@ class DataFilters(object):
             .drop(columns="high_max")
         )
 
-    def apply_200p_twice_6mos(self):
-        date_6mos_prior = (self.filter_date - pd.DateOffset(months=6)).replace(day=1)
+    def apply_200p_thrice_12mos(self):
+        date_12mos_prior = (self.filter_date - pd.DateOffset(months=12)).replace(day=1)
         grouping_vars = ["symbol", "isin", "exchange", "year", "month"]
-        df_200p_val_twice_filter = (
-            self.df_all.query("date >= @date_6mos_prior")
+        df_200p_val_thrice_filter = (
+            self.df_all.query("date >= @date_12mos_prior")
             .assign(value=lambda df: df.close * df.volume)
             .sort_values(grouping_vars + ["day"])
             .groupby(grouping_vars)
@@ -222,18 +222,18 @@ class DataFilters(object):
             .agg({"close_ratio": "count"})
             .reset_index()
             .rename(columns={"close_ratio": "n_double"})
-            .query("n_double>=2")
+            .query("n_double>=3")
             .drop(columns="n_double")
         )
-        self.df_200p_val_twice = self.df_all.query("date == @self.filter_date").merge(
-            df_200p_val_twice_filter, how="inner"
+        self.df_200p_val_thrice = self.df_all.query("date == @self.filter_date").merge(
+            df_200p_val_thrice_filter, how="inner"
         )
 
         if self.df_prev is not None:
-            self.df_200p_val_twice = (
-                self.df_200p_val_twice.merge(
+            self.df_200p_val_thrice = (
+                self.df_200p_val_thrice.merge(
                     self.df_prev.query(
-                        "filter.str.contains('200% twice in 6 months') & is_month",
+                        "(filter.str.contains('200% thrice in 12 months') | filter.str.contains('200% twice in 6 months')) & is_month",
                         engine="python",
                     )
                     .loc[:, ["symbol", "isin", "exchange"]]
