@@ -55,7 +55,8 @@ class DataFilters(object):
         self.get_prev_data()
         # self.apply_300p_month_filter()
         self.apply_200p_quarter_filter()
-        self.apply_200p_thrice_12mos()
+        # self.apply_200p_thrice_12mos()
+        self.apply_200p_twice_6mos()
         # self.apply_52week_high_filter()
         self.df_all_filtered = (
             pd.concat(
@@ -65,7 +66,8 @@ class DataFilters(object):
                         filter="200% value over prior quarter"
                     ),
                     # self.df_52_week_highs.assign(filter="52 week high"),
-                    self.df_200p_val_thrice.assign(filter="200% thrice in 12 months"),
+                    # self.df_200p_val_thrice.assign(filter="200% thrice in 12 months"),
+                    self.df_200p_val_twice.assign(filter="200% twice in 6 months"),
                 ]
             )
             .groupby(["symbol", "isin", "exchange"])
@@ -234,6 +236,53 @@ class DataFilters(object):
                 self.df_200p_val_thrice.merge(
                     self.df_prev.query(
                         "(filter.str.contains('200% thrice in 12 months') | filter.str.contains('200% twice in 6 months')) & is_month",
+                        engine="python",
+                    )
+                    .loc[:, ["symbol", "isin", "exchange"]]
+                    .assign(already_exists=True),
+                    "left",
+                )
+                .query("already_exists.isna()", engine="python")
+                .drop(columns="already_exists")
+            )
+
+    def apply_200p_twice_6mos(self):
+        date_6mos_prior = (self.filter_date - pd.DateOffset(months=6)).replace(day=1)
+        grouping_vars = ["symbol", "isin", "exchange", "year", "month"]
+        df_200p_val_twice_filter = (
+            self.df_all.query("date >= @date_6mos_prior")
+            .assign(value=lambda df: df.close * df.volume)
+            .sort_values(grouping_vars + ["day"])
+            .groupby(grouping_vars)
+            .agg({"value": sum, "volume": sum, "close": lambda x: x.iloc[-1]})
+            .reset_index()
+            .sort_values(grouping_vars)
+            .assign(
+                value_lag=lambda df: df.groupby(["symbol", "isin"])["value"].shift(1),
+                volume_lag=lambda df: df.groupby(["symbol", "isin"])["volume"].shift(1),
+                close_lag=lambda df: df.groupby(["symbol", "isin"])["close"].shift(1),
+                value_ratio=lambda df: df.value / df.value_lag,
+                volume_ratio=lambda df: df.volume / df.volume_lag,
+                close_ratio=lambda df: df.close / df.close_lag,
+            )
+            .query("value_lag.notna()", engine="python")
+            .query("value_ratio>2 & value>2_000_000")  # & close_ratio>1
+            .groupby(["symbol", "isin", "exchange"])
+            .agg({"close_ratio": "count"})
+            .reset_index()
+            .rename(columns={"close_ratio": "n_double"})
+            .query("n_double>=2")
+            .drop(columns="n_double")
+        )
+        self.df_200p_val_twice = self.df_all.query("date == @self.filter_date").merge(
+            df_200p_val_twice_filter, how="inner"
+        )
+
+        if self.df_prev is not None:
+            self.df_200p_val_twice = (
+                self.df_200p_val_twice.merge(
+                    self.df_prev.query(
+                        "filter.str.contains('200% twice in 6 months') & is_month",
                         engine="python",
                     )
                     .loc[:, ["symbol", "isin", "exchange"]]
