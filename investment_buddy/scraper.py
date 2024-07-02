@@ -47,15 +47,13 @@ class PageFinder(object):
         else:
             search_term = f"{symbol} {isin} site:https://www.moneycontrol.com/india/stockpricequote/"
 
-        results = DDGS().text(
-            search_term,
-            max_results=5,
-        )
-
-        if not results:
-            return False
-
         try:
+            results = DDGS().text(
+                search_term,
+                max_results=5,
+            )
+            if not results:
+                return False
             url = results[0]["href"]
             content = str(requests.get(url).content)
             assert symbol.lower() in content.lower() or isin.lower() in content.lower()
@@ -130,8 +128,8 @@ class PageFinder(object):
                 )
 
     def try_finding_info(self):
-        time.sleep(3)
         for force in ["both", "symbol", "isin", "neither"]:
+            time.sleep(3)
             if self.validate_and_gather_info(self.symbol, self.isin, force=force):
                 logger.info(f"Found data for {self.symbol}")
                 return
