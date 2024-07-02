@@ -11,6 +11,9 @@ from tqdm import tqdm
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+# from googlesearch import search
+from duckduckgo_search import DDGS
+
 logger = logging.getLogger(__name__)
 tqdm.pandas()
 os.environ["WDM_LOG_LEVEL"] = "0"
@@ -19,20 +22,9 @@ os.environ["WDM_LOG_LEVEL"] = "0"
 class PageFinder(object):
     """ """
 
-    base_search_url = "http://www.moneycontrol.com/stocks/cptmarket/compsearchnew.php?topsearch_type=1&search_str="
-
     keys_dict = pd.read_csv("data/keys.csv").set_index("field").to_dict(orient="index")
     keys_dict = {k: v["identifier"] for k, v in keys_dict.items()}
     check_element = keys_dict["market_cap"].replace(".", "")
-
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--ignore-certificate-errors")
-    # options.add_argument("--incognito")
-    # options.add_argument("--headless")
-    # options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    # browser = webdriver.Chrome(
-    #     service=Service(ChromeDriverManager().install()), options=options
-    # )
 
     def __init__(self, isin, symbol):
         self.isin, self.symbol = str(isin), str(symbol)
@@ -40,24 +32,40 @@ class PageFinder(object):
         self.props = dict()
         self.try_finding_info()
 
-    def make_url(self, term):
-        return self.base_search_url + term
-
     def get_parsed_content(self, url):
-        # self.browser.implicitly_wait(wait_time)
-        # self.browser.get(url)
         return BeautifulSoup(requests.get(url).content, features="lxml")
 
-    def validate_and_gather_info(self, term):
-        url = self.make_url(term)
+    def validate_and_gather_info(self, symbol, isin, force="symbol"):
+        print(f"symbol: {symbol}, isin: {isin}, force: {force}")
+        if force == "symbol":
+            search_term = f'"{symbol}" {isin} site:https://www.moneycontrol.com/india/stockpricequote/'
+        elif force == "isin":
+            search_term = f'{symbol} "{isin}" site:https://www.moneycontrol.com/india/stockpricequote/'
+        elif force == "both":
+            search_term = f'"{symbol}" "{isin}" site:https://www.moneycontrol.com/india/stockpricequote/'
+        else:
+            search_term = f"{symbol} {isin} site:https://www.moneycontrol.com/india/stockpricequote/"
+
+        results = DDGS().text(
+            search_term,
+            max_results=5,
+        )
+
+        if not results:
+            return False
+
         try:
-            content = requests.get(url).content
+            url = results[0]["href"]
+            content = str(requests.get(url).content)
+            assert symbol.lower() in content.lower() or isin.lower() in content.lower()
         except Exception as e:
-            logger.warning(f"Parse error for {url}")
+            logger.warning(
+                f"Parse error for symbol: {symbol}, isin: {isin}, force: {force}, search_term: {search_term}"
+            )
             logger.warning(e)
             content = ""
-        
-        if self.check_element in str(content):
+
+        if self.check_element in content:
             logger.info(f"\nGathering Data for {self.symbol}")
             self.url = url
             soup_home = BeautifulSoup(content, features="lxml")
@@ -121,11 +129,8 @@ class PageFinder(object):
                 )
 
     def try_finding_info(self):
-        search_terms = [self.isin] + [
-            self.symbol[:i] for i in range(len(self.symbol), 3, -1)
-        ]
-        for term in search_terms:
-            if self.validate_and_gather_info(term):
+        for force in ["both", "symbol", "isin", "neither"]:
+            if self.validate_and_gather_info(self.symbol, self.isin, force=force):
                 logger.info(f"Found data for {self.symbol}")
                 return
         logger.warning(f"\nCould not find data for {self.symbol}")
@@ -143,7 +148,7 @@ def scrape_metrics(df_filtered, date_str):
     )
     # we query only for stocks where data was successfully scraped as they are easier to split into columns
     # This works even during merging with the df_filtered because the indix is left unchanged and that makes
-    # sure the alignment happens correctly. 
+    # sure the alignment happens correctly.
     df = (
         df_filtered.pf.apply(lambda pf: pf.props)
         .apply(pd.Series)
@@ -199,6 +204,10 @@ def scrape_metrics(df_filtered, date_str):
 
     # Save the worksheet as a (*.xlsx) file
     wb.template = False
-    save_path = f"data/{date_str}.xlsx" if date_str=="latest" else f"data/final/{date_str}.xlsx"
+    save_path = (
+        f"data/{date_str}.xlsx"
+        if date_str == "latest"
+        else f"data/final/{date_str}.xlsx"
+    )
     wb.save(save_path)
     logger.info(f"Saved data to {save_path}")

@@ -5,3 +5,4 @@ data/nse/*.csv
 .vscode/*
 data/filtered/*.xlsx
 data/final/*.xlsx
+.DS_Store
