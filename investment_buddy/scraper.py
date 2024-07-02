@@ -10,6 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from tqdm import tqdm
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
+import time
 
 # from googlesearch import search
 from duckduckgo_search import DDGS
@@ -36,7 +37,7 @@ class PageFinder(object):
         return BeautifulSoup(requests.get(url).content, features="lxml")
 
     def validate_and_gather_info(self, symbol, isin, force="symbol"):
-        print(f"symbol: {symbol}, isin: {isin}, force: {force}")
+        # print(f"symbol: {symbol}, isin: {isin}, force: {force}")
         if force == "symbol":
             search_term = f'"{symbol}" {isin} site:https://www.moneycontrol.com/india/stockpricequote/'
         elif force == "isin":
@@ -59,10 +60,10 @@ class PageFinder(object):
             content = str(requests.get(url).content)
             assert symbol.lower() in content.lower() or isin.lower() in content.lower()
         except Exception as e:
-            logger.warning(
-                f"Parse error for symbol: {symbol}, isin: {isin}, force: {force}, search_term: {search_term}"
-            )
-            logger.warning(e)
+            # logger.warning(
+            #     f"Parse error for symbol: {symbol}, isin: {isin}, force: {force}, search_term: {search_term}"
+            # )
+            # logger.warning(e)
             content = ""
 
         if self.check_element in content:
@@ -129,6 +130,7 @@ class PageFinder(object):
                 )
 
     def try_finding_info(self):
+        time.sleep(3)
         for force in ["both", "symbol", "isin", "neither"]:
             if self.validate_and_gather_info(self.symbol, self.isin, force=force):
                 logger.info(f"Found data for {self.symbol}")
