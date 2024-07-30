@@ -27,8 +27,6 @@ class StockDownloader(object):
         file_name = date.format("YYYYMMDD") + ".csv"
         if file_name not in os.listdir(self.download_path) or replace:
             try:
-                #         if True:
-                fd, name = tempfile.mkstemp(suffix=".zip")
                 r = requests.get(
                     download_url,
                     allow_redirects=True,
@@ -37,15 +35,29 @@ class StockDownloader(object):
                 )
                 r.raise_for_status()
 
-                with open(name, "wb") as f:
-                    f.write(r.content)
+                if self.exchange == "NSE":
+                    fd, name = tempfile.mkstemp(suffix=".zip")
+                    with open(name, "wb") as f:
+                        f.write(r.content)
+                    zipdata = zipfile.ZipFile(name)
+                    zipinfos = zipdata.infolist()
+                    for zipinfo in zipinfos:
+                        zipinfo.filename = file_name
+                        zipdata.extract(zipinfo, self.download_path)
+                else:
+                    with open(self.download_path / file_name, "wb") as f:
+                        f.write(r.content)
 
-                zipdata = zipfile.ZipFile(name)
-                zipinfos = zipdata.infolist()
-                for zipinfo in zipinfos:
-                    zipinfo.filename = file_name
-                    zipdata.extract(zipinfo, self.download_path)
-
+                remap = {
+                    "TckrSymb": "symbol",
+                    "ISIN": "isin",
+                    "Src": "exchange",
+                    "OpnPric": "open",
+                    "HghPric": "high",
+                    "LwPric": "low",
+                    "ClsPric": "close",
+                    "TtlTradgVol": "volume",
+                }
                 col_order = [
                     "symbol",
                     "isin",
@@ -61,9 +73,17 @@ class StockDownloader(object):
                     "day",
                     "ym",
                 ]
+
+                cond = (
+                    'sctysrs=="EQ"'
+                    if self.exchange == "NSE"
+                    else '~sctysrs.isin(["E", "F", "G", "MT"])'
+                )
+
                 df = (
                     pd.read_csv(self.download_path / file_name)
-                    .pipe(self.reformat)
+                    # .pipe(self.reformat)
+                    .rename(columns=remap)
                     .assign(
                         date=date.date(),
                         year=date.year,
@@ -72,7 +92,7 @@ class StockDownloader(object):
                         ym=f"{date.year}{date.month:02}",
                     )
                     .rename(columns=str.lower)
-                    .query('series == "EQ"')
+                    .query(cond)
                     .loc[:, col_order]
                 )
                 df.to_csv(self.download_path / file_name, index=False)
@@ -95,7 +115,8 @@ class StockDownloader(object):
                 )
                 logger.warning(err)
             finally:
-                os.close(fd)
+                if self.exchange == "NSE":
+                    os.close(fd)
         else:
             logger.info(
                 f"{self.exchange} data for {date.format('DD MMM, YYYY.')} already present"
@@ -135,7 +156,7 @@ class StockDownloader(object):
         for dt in dates:
             self.download_data_for_date(dt)
 
-        # Multiprocessing seems to be causing issues and might be overkill anyway considering bot is going 
+        # Multiprocessing seems to be causing issues and might be overkill anyway considering bot is going
         # to be running on a daily basis.
         # with ProcessPoolExecutor() as executor:
         #     executor.map(self.download_data_for_date, dates)
@@ -153,10 +174,8 @@ class NseDownloader(StockDownloader):
     exclude_days = []
 
     def make_url_func(self, date: Date):
-        year = date.year
-        month_name = date.format("MMM").upper()
-        date_str = date.format("DDMMMYYYY").upper()
-        return f"https://archives.nseindia.com/content/historical/EQUITIES/{year}/{month_name}/cm{date_str}bhav.csv.zip"
+        date_str = date.format("YYYYMMDD").upper()
+        return f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{date_str}_F_0000.csv.zip"
 
     def reformat(self, df):
         return df.rename(columns={"TOTTRDQTY": "volume"}).assign(exchange=self.exchange)
@@ -168,8 +187,8 @@ class BseDownloader(StockDownloader):
     exclude_days = ["20211229"]
 
     def make_url_func(self, date: Date):
-        date_str = date.format("DDMMYY").upper()
-        return f"https://www.bseindia.com/download/BhavCopy/Equity/EQ{date_str}_CSV.zip"
+        date_str = date.format("YYYYMMDD").upper()
+        return f"https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{date_str}_F_0000.CSV"
 
     def reformat(self, df):
         return df.rename(

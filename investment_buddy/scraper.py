@@ -129,7 +129,7 @@ class PageFinder(object):
 
     def try_finding_info(self):
         for force in ["both", "symbol", "isin", "neither"]:
-            time.sleep(3)
+            time.sleep(4)
             if self.validate_and_gather_info(self.symbol, self.isin, force=force):
                 logger.info(f"Found data for {self.symbol}")
                 return
