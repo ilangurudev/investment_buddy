@@ -58,10 +58,12 @@ class StockDownloader(object):
                     "LwPric": "low",
                     "ClsPric": "close",
                     "TtlTradgVol": "volume",
+                    "FinInstrmId": "alt_id",
                 }
                 col_order = [
                     "symbol",
                     "isin",
+                    "alt_id",
                     "exchange",
                     "date",
                     "open",

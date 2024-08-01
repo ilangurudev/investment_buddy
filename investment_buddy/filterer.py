@@ -9,12 +9,31 @@ logger = logging.getLogger(__name__)
 
 class DataFilters(object):
     def __init__(self, as_of_date):
-        df_all = pd.concat(
+        df_all_org = pd.concat(
             map(pd.read_csv, glob.glob("data/nse/*.csv") + glob.glob("data/bse/*.csv"))
         ).assign(
             date=lambda df: pd.to_datetime(df.date),
             quarter=lambda df: df.date.dt.quarter,
+            alt_id=lambda df: df.alt_id.astype("Int64").astype("string"),
+            isin=lambda df: df["isin"].astype("string"),
         )
+
+        # to address change in format of data files after July 8, 2024.
+        df_nse = df_all_org.query("exchange=='NSE'")
+        df_bse = df_all_org.query("exchange=='BSE'")
+        df_bse_new = df_bse.query("alt_id.notna()")
+        df_replace_dict = df_bse_new.query("date==date.max()")[
+            ["symbol", "isin", "alt_id"]
+        ].drop_duplicates()
+        df_bse_old = (
+            df_bse.query("alt_id.isna()")
+            .drop(columns=["symbol", "alt_id"])
+            .rename(columns={"isin": "alt_id"})
+        )
+        df_bse_old = df_bse_old.merge(df_replace_dict, how="left", on="alt_id")
+        df_all = pd.concat([df_nse, df_bse_new, df_bse_old])
+        assert len(df_all) == len(df_all_org)
+
         self.as_of_date = pd.to_datetime(as_of_date.naive())
         max_date = df_all.date.max()
         self.filter_date = max_date if max_date < self.as_of_date else self.as_of_date
@@ -74,6 +93,11 @@ class DataFilters(object):
             .agg({"filter": lambda x: x.str.cat(sep=", ")})
             .reset_index()
             .assign(date_str=self.date_str)
+            # in case same isin repeats, only retain NSE entry
+            .sort_values(["isin", "exchange"])
+            .groupby("isin")
+            .last()
+            .reset_index()
         )
         self.df_all_filtered.to_excel(
             f"data/filtered/{self.date_str}.xlsx", index=False
