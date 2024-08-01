@@ -70,7 +70,7 @@ class DataFilters(object):
                     self.df_200p_val_twice.assign(filter="200% twice in 6 months"),
                 ]
             )
-            .groupby(["symbol", "isin", "exchange"])
+            .groupby(["exchange", "symbol", "isin"])
             .agg({"filter": lambda x: x.str.cat(sep=", ")})
             .reset_index()
             .assign(date_str=self.date_str)
@@ -93,7 +93,7 @@ class DataFilters(object):
 
     def apply_300p_month_filter(self):
         prev_month_first = (self.filter_date - pd.DateOffset(months=1)).replace(day=1)
-        grouping_vars = ["symbol", "isin", "exchange", "year", "month"]
+        grouping_vars = ["exchange", "symbol", "isin", "year", "month"]
         self.df_300p_val_month = (
             self.df_all.query("date >= @prev_month_first")
             .assign(value=lambda df: df.close * df.volume)
@@ -103,13 +103,13 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                value_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "value"
                 ].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                volume_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "volume"
                 ].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                close_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "close"
                 ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
@@ -126,7 +126,7 @@ class DataFilters(object):
                         "filter.str.contains('300% value over prior month') & is_month",
                         engine="python",
                     )
-                    .loc[:, ["symbol", "isin", "exchange"]]
+                    .loc[:, ["exchange", "symbol", "isin"]]
                     .assign(already_exists=True),
                     "left",
                 )
@@ -157,13 +157,13 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                value_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "value"
                 ].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                volume_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "volume"
                 ].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                close_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "close"
                 ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
@@ -180,7 +180,7 @@ class DataFilters(object):
                         "filter.str.contains('200% value over prior quarter')",
                         engine="python",
                     )
-                    .loc[:, ["symbol", "isin", "exchange"]]
+                    .loc[:, ["exchange", "symbol", "isin"]]
                     .assign(already_exists=True),
                     "left",
                 )
@@ -190,7 +190,7 @@ class DataFilters(object):
 
     def apply_52week_high_filter(self):
         date_52_weeks_prior = self.filter_date - pd.DateOffset(weeks=52)
-        grouping_vars = ["symbol", "isin", "exchange"]
+        grouping_vars = ["exchange", "symbol", "isin"]
 
         df_52_week_high_vals = (
             self.df_all.query("date >= @date_52_weeks_prior")
@@ -213,7 +213,7 @@ class DataFilters(object):
 
     def apply_200p_thrice_12mos(self):
         date_12mos_prior = (self.filter_date - pd.DateOffset(months=12)).replace(day=1)
-        grouping_vars = ["symbol", "isin", "exchange", "year", "month"]
+        grouping_vars = ["exchange", "symbol", "isin", "year", "month"]
         df_200p_val_thrice_filter = (
             self.df_all.query("date >= @date_12mos_prior")
             .assign(value=lambda df: df.close * df.volume)
@@ -223,13 +223,13 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                value_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "value"
                 ].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                volume_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "volume"
                 ].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                close_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "close"
                 ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
@@ -238,7 +238,7 @@ class DataFilters(object):
             )
             .query("value_lag.notna()", engine="python")
             .query("value_ratio>2 & value>2_000_000")  # & close_ratio>1
-            .groupby(["symbol", "isin", "exchange"])
+            .groupby(["exchange", "symbol", "isin"])
             .agg({"close_ratio": "count"})
             .reset_index()
             .rename(columns={"close_ratio": "n_double"})
@@ -256,7 +256,7 @@ class DataFilters(object):
                         "(filter.str.contains('200% thrice in 12 months') | filter.str.contains('200% twice in 6 months')) & is_month",
                         engine="python",
                     )
-                    .loc[:, ["symbol", "isin", "exchange"]]
+                    .loc[:, ["exchange", "symbol", "isin"]]
                     .assign(already_exists=True),
                     "left",
                 )
@@ -266,7 +266,7 @@ class DataFilters(object):
 
     def apply_200p_twice_6mos(self):
         date_6mos_prior = (self.filter_date - pd.DateOffset(months=6)).replace(day=1)
-        grouping_vars = ["symbol", "isin", "exchange", "year", "month"]
+        grouping_vars = ["exchange", "symbol", "isin", "year", "month"]
         df_200p_val_twice_filter = (
             self.df_all.query("date >= @date_6mos_prior")
             .assign(value=lambda df: df.close * df.volume)
@@ -276,13 +276,13 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                value_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "value"
                 ].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                volume_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "volume"
                 ].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                close_lag=lambda df: df.groupby(["exchange", "symbol", "isin"])[
                     "close"
                 ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
@@ -291,7 +291,7 @@ class DataFilters(object):
             )
             .query("value_lag.notna()", engine="python")
             .query("value_ratio>2 & value>2_000_000")  # & close_ratio>1
-            .groupby(["symbol", "isin", "exchange"])
+            .groupby(["exchange", "symbol", "isin"])
             .agg({"close_ratio": "count"})
             .reset_index()
             .rename(columns={"close_ratio": "n_double"})
@@ -309,7 +309,7 @@ class DataFilters(object):
                         "filter.str.contains('200% twice in 6 months') & is_month",
                         engine="python",
                     )
-                    .loc[:, ["symbol", "isin", "exchange"]]
+                    .loc[:, ["exchange", "symbol", "isin"]]
                     .assign(already_exists=True),
                     "left",
                 )
