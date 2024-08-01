@@ -103,9 +103,15 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin"])["value"].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin"])["volume"].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin"])["close"].shift(1),
+                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "value"
+                ].shift(1),
+                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "volume"
+                ].shift(1),
+                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "close"
+                ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
                 volume_ratio=lambda df: df.volume / df.volume_lag,
                 close_ratio=lambda df: df.close / df.close_lag,
@@ -151,9 +157,15 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin"])["value"].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin"])["volume"].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin"])["close"].shift(1),
+                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "value"
+                ].shift(1),
+                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "volume"
+                ].shift(1),
+                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "close"
+                ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
                 volume_ratio=lambda df: df.volume / df.volume_lag,
                 close_ratio=lambda df: df.close / df.close_lag,
@@ -211,9 +223,15 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin"])["value"].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin"])["volume"].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin"])["close"].shift(1),
+                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "value"
+                ].shift(1),
+                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "volume"
+                ].shift(1),
+                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "close"
+                ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
                 volume_ratio=lambda df: df.volume / df.volume_lag,
                 close_ratio=lambda df: df.close / df.close_lag,
@@ -258,9 +276,15 @@ class DataFilters(object):
             .reset_index()
             .sort_values(grouping_vars)
             .assign(
-                value_lag=lambda df: df.groupby(["symbol", "isin"])["value"].shift(1),
-                volume_lag=lambda df: df.groupby(["symbol", "isin"])["volume"].shift(1),
-                close_lag=lambda df: df.groupby(["symbol", "isin"])["close"].shift(1),
+                value_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "value"
+                ].shift(1),
+                volume_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "volume"
+                ].shift(1),
+                close_lag=lambda df: df.groupby(["symbol", "isin", "exchange"])[
+                    "close"
+                ].shift(1),
                 value_ratio=lambda df: df.value / df.value_lag,
                 volume_ratio=lambda df: df.volume / df.volume_lag,
                 close_ratio=lambda df: df.close / df.close_lag,

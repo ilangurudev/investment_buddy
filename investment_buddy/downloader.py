@@ -25,6 +25,7 @@ class StockDownloader(object):
     def download_data_for_date(self, date: Date, replace=False):
         download_url = self.make_url_func(date)
         file_name = date.format("YYYYMMDD") + ".csv"
+        fd = None
         if file_name not in os.listdir(self.download_path) or replace:
             try:
                 r = requests.get(
@@ -116,7 +117,8 @@ class StockDownloader(object):
                 logger.warning(err)
             finally:
                 if self.exchange == "NSE":
-                    os.close(fd)
+                    if fd:
+                        os.close(fd)
         else:
             logger.info(
                 f"{self.exchange} data for {date.format('DD MMM, YYYY.')} already present"
