@@ -99,6 +99,13 @@ class DataFilters(object):
             .last()
             .reset_index()
         )
+        self.df_all_filtered = (
+            self.df_all_filtered.query("~symbol.str.endswith('ETF)")
+            .query("~symbol.str.startswith('ADANI)")
+            .query("~symbol.str.startswith('RELIANCE)")
+            .query("~symbol.str.startswith('KOTHARI)")
+        )
+
         self.df_all_filtered.to_excel(
             f"data/filtered/{self.date_str}.xlsx", index=False
         )
