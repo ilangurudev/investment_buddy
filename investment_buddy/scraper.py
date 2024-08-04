@@ -12,8 +12,9 @@ import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 import time
 
-# from googlesearch import search
-from duckduckgo_search import DDGS
+from googlesearch import search
+
+# from duckduckgo_search import DDGS
 
 logger = logging.getLogger(__name__)
 tqdm.pandas()
@@ -21,8 +22,6 @@ os.environ["WDM_LOG_LEVEL"] = "0"
 
 
 class PageFinder(object):
-    """ """
-
     keys_dict = pd.read_csv("data/keys.csv").set_index("field").to_dict(orient="index")
     keys_dict = {k: v["identifier"] for k, v in keys_dict.items()}
     check_element = keys_dict["market_cap"].replace(".", "")
@@ -31,41 +30,29 @@ class PageFinder(object):
         self.isin, self.symbol = str(isin), str(symbol)
         self.url = self.home_content = self.ratios_url = None
         self.props = dict()
+        df_url_index = pd.read_csv("./data/company_info.csv").rename(columns=str.lower)
+        self.isin_url_dict = df_url_index.set_index("isin")["url"].to_dict()
         self.try_finding_info()
 
     def get_parsed_content(self, url):
         return BeautifulSoup(requests.get(url).content, features="lxml")
 
-    def validate_and_gather_info(self, symbol, isin, force="symbol"):
-        # print(f"symbol: {symbol}, isin: {isin}, force: {force}")
-        if force == "symbol":
-            search_term = f'"{symbol}" {isin} site:https://www.moneycontrol.com/india/stockpricequote/'
-        elif force == "isin":
-            search_term = f'{symbol} "{isin}" site:https://www.moneycontrol.com/india/stockpricequote/'
-        elif force == "both":
-            search_term = f'"{symbol}" "{isin}" site:https://www.moneycontrol.com/india/stockpricequote/'
+    def validate_and_gather_info(self, symbol, isin):
+        if isin in self.isin_url_dict:
+            url = self.isin_url_dict[isin]
         else:
-            search_term = f"{symbol} {isin} site:https://www.moneycontrol.com/india/stockpricequote/"
-
-        try:
-            results = DDGS().text(
-                search_term,
-                max_results=5,
-            )
-            if not results:
+            search_term = f'"{isin}" {symbol} site:https://www.moneycontrol.com/india/stockpricequote/'
+            try:
+                results = list(search(search_term, num_results=5))
+                url = [r for r in results if len(r) > 52][0]
+            except Exception as e:
                 return False
-            url = results[0]["href"]
-            content = str(requests.get(url).content)
-            assert symbol.lower() in content.lower() or isin.lower() in content.lower()
-        except Exception as e:
-            # logger.warning(
-            #     f"Parse error for symbol: {symbol}, isin: {isin}, force: {force}, search_term: {search_term}"
-            # )
-            # logger.warning(e)
-            content = ""
 
-        if self.check_element in content:
-            logger.info(f"\nGathering Data for {self.symbol}")
+        content = str(requests.get(url).content)
+        if (
+            (symbol.lower() in content.lower()) or (isin.lower() in content.lower())
+        ) and (self.check_element in content):
+            # logger.info(f"\nGathering Data for {self.symbol} - {self.isin}")
             self.url = url
             soup_home = BeautifulSoup(content, features="lxml")
             market_cap = soup_home.select_one(
@@ -128,13 +115,10 @@ class PageFinder(object):
                 )
 
     def try_finding_info(self):
-        for force in ["both", "symbol", "isin", "neither"]:
-            time.sleep(4)
-            if self.validate_and_gather_info(self.symbol, self.isin, force=force):
-                logger.info(f"Found data for {self.symbol}")
-                return
-        logger.warning(f"\nCould not find data for {self.symbol}")
-        # self.browser.close()
+        if self.validate_and_gather_info(self.symbol, self.isin):
+            logger.info(f"Found data for {self.symbol} - {self.isin}")
+        else:
+            logger.warning(f"\nCould not find data for {self.symbol}")
 
     def __repr__(self):
         return f"PageFinder({self.isin}, {self.symbol}, {self.url})"

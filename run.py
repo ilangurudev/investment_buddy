@@ -12,7 +12,7 @@ bse_downloader = BseDownloader()
 nse_downloader.update_data(prune_weeks=80)
 bse_downloader.update_data(prune_weeks=80)
 
-as_of_date = pendulum.today()  #pendulum.from_format(f"20220228", "YYYYMMDD") 
+as_of_date = pendulum.today()  # pendulum.from_format(f"20220228", "YYYYMMDD")
 data_filter = DataFilters(as_of_date)
 data_filter.apply_all_filters()
 

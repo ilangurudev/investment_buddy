@@ -14,3 +14,4 @@ dependencies:
     - selenium==4.1.2
     - lxml
     - duckduckgo_search
+    - googlesearch-python
